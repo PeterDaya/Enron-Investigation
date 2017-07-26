@@ -2,6 +2,7 @@
 
 import sys
 import pickle
+import matplotlib.pyplot as plt
 sys.path.append("./tools/")
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
@@ -10,6 +11,24 @@ from sklearn import tree
 from sklearn.naive_bayes import GaussianNB
 from sklearn import svm
 from sklearn.cross_validation import train_test_split
+
+def plot_data(data_dict, plot_x, plot_y):
+    data = featureFormat(data_dict, [plot_x, plot_y, 'poi'])
+
+    for p in data:
+        x = p[0]
+        y = p[1]
+        poi = p[2]
+        if poi:
+            color = 'blue'
+        else:
+            color = 'red'
+
+        plt.scatter(x, y, color=color)
+
+    plt.xlabel(plot_x)
+    plt.ylabel(plot_y)
+    plt.show()
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -45,6 +64,8 @@ my_dataset = data_dict
 data = featureFormat(my_dataset, features_list, sort_keys = True)
 labels, features = targetFeatureSplit(data)
 
+plot_data(data_dict, 'salary', 'bonus')
+plot_data(data_dict, 'salary',  'from_poi_to_this_person')
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
 ### Note that if you want to do PCA or other multi-stage operations,
@@ -69,5 +90,6 @@ features_train, features_test, labels_train, labels_test = \
 ### check your results. You do not need to change anything below, but make sure
 ### that the version of poi_id.py that you submit can be run on its own and
 ### generates the necessary .pkl files for validating your results.
-
+clf.fit(features_train, labels_train)
+pred = clf.predict(features_test)
 dump_classifier_and_data(clf, my_dataset, features_list)
