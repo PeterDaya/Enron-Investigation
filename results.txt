@@ -1,4 +1,6 @@
+/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/sklearn/cross_validation.py:44: DeprecationWarning: This module was deprecated in version 0.18 in favor of the model_selection module into which all the refactored classes and functions are moved. Also note that the interface of the new CV iterators are different from that of this module. This module will be removed in 0.20.
+  "This module will be removed in 0.20.", DeprecationWarning)
 GaussianNB(priors=None)
-	Accuracy: 0.25560	Precision: 0.18481	Recall: 0.79800	F1: 0.30011	F2: 0.47968
-	Total predictions: 10000	True positives: 1596	False positives: 7040	False negatives:  404	True negatives:  960
+	Accuracy: 0.67311	Precision: 0.21455	Recall: 0.17700	F1: 0.19397	F2: 0.18342
+	Total predictions: 9000	True positives:  354	False positives: 1296	False negatives: 1646	True negatives: 5704
 
