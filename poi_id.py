@@ -12,6 +12,12 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn import svm
 from sklearn.cross_validation import train_test_split
 
+def calc_fraction(all_msgs, poi_msgs):
+    if all_msgs == "NaN" or poi_msgs == "NaN":
+        return 0
+    fraction_msgs = poi_msgs/all_msgs
+    return fraction_msgs
+
 def plot_data(data_dict, plot_x, plot_y):
     data = featureFormat(data_dict, [plot_x, plot_y, 'poi'])
 
@@ -66,6 +72,18 @@ labels, features = targetFeatureSplit(data)
 
 plot_data(data_dict, 'salary', 'bonus')
 plot_data(data_dict, 'salary',  'from_poi_to_this_person')
+
+for name in my_dataset:
+    record = my_dataset[name]
+    to_messages = record["to_messages"]
+    from_poi_to_this_person = record["from_poi_to_this_person"]
+    from_this_person_to_poi = record["from_this_person_to_poi"]
+    from_poi_fraction = calc_fraction(to_messages, from_poi_to_this_person)
+    to_poi_fraction = calc_fraction(to_messages, from_this_person_to_poi)
+    record["from_poi_fraction"] = from_poi_fraction
+    record["to_poi_fraction"] = to_poi_fraction
+
+new_feature_list = features_list + ["from_poi_fraction", "to_poi_fraction"]
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
 ### Note that if you want to do PCA or other multi-stage operations,
