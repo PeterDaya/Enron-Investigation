@@ -6,11 +6,13 @@ import matplotlib.pyplot as plt
 sys.path.append("./tools/")
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
+from sklearn.metrics import accuracy_score
 #Importing difference classifiers to test best method
 from sklearn import tree
 from sklearn.naive_bayes import GaussianNB
 from sklearn import svm
 from sklearn.cross_validation import train_test_split
+from sklearn.feature_selection import SelectKBest
 
 def calc_fraction(all_msgs, poi_msgs):
     if all_msgs == "NaN" or poi_msgs == "NaN":
@@ -49,7 +51,6 @@ features_list = ["poi", "salary", 'deferral_payments', 'total_payments', 'loan_a
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
-#print data_dict
 ### Task 2: Remove outliers
 print "Number of data points before removing outliers: ", len(data_dict)
 outliers = ['TOTAL', 'LOCKHART EUGENE E', 'THE TRAVEL AGENCY IN THE PARK']
@@ -73,8 +74,8 @@ labels, features = targetFeatureSplit(data)
 plot_data(data_dict, 'salary', 'bonus')
 plot_data(data_dict, 'salary',  'from_poi_to_this_person')
 
-for name in my_dataset:
-    record = my_dataset[name]
+for i in my_dataset:
+    record = my_dataset[i]
     to_messages = record["to_messages"]
     from_poi_to_this_person = record["from_poi_to_this_person"]
     from_this_person_to_poi = record["from_this_person_to_poi"]
@@ -83,7 +84,19 @@ for name in my_dataset:
     record["from_poi_fraction"] = from_poi_fraction
     record["to_poi_fraction"] = to_poi_fraction
 
-new_feature_list = features_list + ["from_poi_fraction", "to_poi_fraction"]
+new_features_list = features_list + ["from_poi_fraction", "to_poi_fraction"]
+
+data = featureFormat(data_dict, features_list)
+labels, features = targetFeatureSplit(data)
+kbest = SelectKBest(k=5)
+kbest.fit(features, labels)
+scores = kbest.scores_
+unsorted = zip(features_list[1:], scores)
+sorted_info = list(reversed(sorted(unsorted, key=lambda x: x[1])))
+selected_features = dict(sorted_info[:10])
+
+features_list = ["poi"] + selected_features.keys()
+
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
 ### Note that if you want to do PCA or other multi-stage operations,
@@ -110,4 +123,5 @@ features_train, features_test, labels_train, labels_test = \
 ### generates the necessary .pkl files for validating your results.
 clf.fit(features_train, labels_train)
 pred = clf.predict(features_test)
+print "Accuracy Score: ", accuracy_score(pred, labels_test)
 dump_classifier_and_data(clf, my_dataset, features_list)
