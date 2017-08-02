@@ -7,6 +7,7 @@ sys.path.append("./tools/")
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 from sklearn.metrics import accuracy_score
+from sklearn import preprocessing
 #Importing difference classifiers to test best method
 from sklearn import tree
 from sklearn.naive_bayes import GaussianNB
@@ -96,6 +97,12 @@ sorted_info = list(reversed(sorted(unsorted, key=lambda x: x[1])))
 selected_features = dict(sorted_info[:10])
 
 features_list = ["poi"] + selected_features.keys()
+data = featureFormat(my_dataset, features_list)
+
+labels, features = targetFeatureSplit(data)
+
+scale = preprocessing.MinMaxScaler()
+features = scale.fit_transform(features)
 
 ### Task 4: Try a varity of classifiers
 clf = GaussianNB()
