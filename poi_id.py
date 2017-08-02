@@ -15,12 +15,14 @@ from sklearn import svm
 from sklearn.cross_validation import train_test_split
 from sklearn.feature_selection import SelectKBest
 
+#calc_fraction helps in defining a new programmer-defined feature
 def calc_fraction(all_msgs, poi_msgs):
     if all_msgs == "NaN" or poi_msgs == "NaN":
         return 0
     fraction_msgs = poi_msgs/all_msgs
     return fraction_msgs
 
+#plot_data is a quick and easy method for visualizing our data
 def plot_data(data_dict, plot_x, plot_y):
     data = featureFormat(data_dict, [plot_x, plot_y, 'poi'])
 
@@ -38,6 +40,38 @@ def plot_data(data_dict, plot_x, plot_y):
     plt.xlabel(plot_x)
     plt.ylabel(plot_y)
     plt.show()
+
+#test_classifier helps us in testing a variety of classifiers
+def test_classifier(clf, features, labels):
+    accuracy = []
+    precision = []
+    recall = []
+    note = True
+
+    for i in range(1000):
+        features_train, features_test, labels_train, labels_test =\
+        train_test_split(features, labels, test_size=0.3)
+
+        clf.fit(features_train, labels_train)
+        pred = clf.predict(features_test)
+        precision.append(precision_score(labels_test, pred))
+        accuracy.append(accuracy_score(labels_test, pred))
+        recall.append(recall_score(labels_test, pred))
+
+        if i % 25 == 0:
+            if note:
+                sys.stdout.write("\nTesting Classifier")
+            sys.stdout.write(".\n")
+            sys.stdout.flush
+            note = False
+
+    print "Finished"
+    print "\n"
+    print "Precision: ", mean(precision)
+    print "Recall: ", mean(recall)
+
+    return mean(precision), mean(recall)
+
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -113,8 +147,8 @@ clf = GaussianNB()
 ### stratified shuffle split cross validation. For more info: 
 
 # Example starting point. Try investigating other evaluation techniques!
-features_train, features_test, labels_train, labels_test = \
-    train_test_split(features, labels, test_size=0.3, random_state=42)
+#features_train, features_test, labels_train, labels_test = \
+ #   train_test_split(features, labels, test_size=0.3, random_state=42)
 
 clf.fit(features_train, labels_train)
 pred = clf.predict(features_test)
