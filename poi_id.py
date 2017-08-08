@@ -1,12 +1,15 @@
 #!/usr/bin/python
-
 import sys
 import pickle
 import matplotlib.pyplot as plt
 sys.path.append("./tools/")
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
+from numpy import mean
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+
 from sklearn import preprocessing
 #Importing difference classifiers to test best method
 from sklearn import tree
@@ -14,6 +17,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn import svm
 from sklearn.cross_validation import train_test_split
 from sklearn.feature_selection import SelectKBest
+from sklearn.ensemble import RandomForestClassifier
 
 #calc_fraction helps in defining a new programmer-defined feature
 def calc_fraction(all_msgs, poi_msgs):
@@ -58,7 +62,7 @@ def test_classifier(clf, features, labels):
         accuracy.append(accuracy_score(labels_test, pred))
         recall.append(recall_score(labels_test, pred))
 
-        if i % 25 == 0:
+        if i % 100 == 0:
             if note:
                 sys.stdout.write("\nTesting Classifier")
             sys.stdout.write(".\n")
@@ -67,8 +71,8 @@ def test_classifier(clf, features, labels):
 
     print "Finished"
     print "\n"
-    print "Precision: ", mean(precision)
-    print "Recall: ", mean(recall)
+    print clf, "Precision: ", mean(precision)
+    print clf, "Recall: ", mean(recall)
 
     return mean(precision), mean(recall)
 
@@ -109,6 +113,7 @@ labels, features = targetFeatureSplit(data)
 plot_data(data_dict, "salary", "bonus")
 plot_data(data_dict, "salary",  "from_poi_to_this_person")
 
+#Here we create new datapoints in each record in the database
 for i in my_dataset:
     record = my_dataset[i]
     to_messages = record["to_messages"]
@@ -121,6 +126,8 @@ for i in my_dataset:
 
 new_features_list = features_list + ["from_poi_fraction", "to_poi_fraction"]
 
+#After adding our two new features to our database, we must select the five most
+#pertinent features in our data to make computation more efficient
 data = featureFormat(data_dict, features_list)
 labels, features = targetFeatureSplit(data)
 kbest = SelectKBest(k=5)
@@ -130,16 +137,24 @@ unsorted = zip(features_list[1:], scores)
 sorted_info = list(reversed(sorted(unsorted, key=lambda x: x[1])))
 selected_features = dict(sorted_info[:10])
 
+#We replace our existing features with newly selected features
 features_list = ["poi"] + selected_features.keys()
 data = featureFormat(my_dataset, features_list)
 
 labels, features = targetFeatureSplit(data)
-
 scale = preprocessing.MinMaxScaler()
 features = scale.fit_transform(features)
 
 ### Task 4: Try a varity of classifiers
-clf = GaussianNB()
+clf_gauss = GaussianNB()
+clf_svm = svm.SVC()
+clf_tree = tree.DecisionTreeClassifier()
+#clf_rf = RandomForestClassifier(max_depth = 5, n_estimators = 10, random_state = 42)
+test_classifier(clf_gauss, features, labels)
+test_classifier(clf_svm, features, labels)
+test_classifier(clf_tree, features, labels)
+#prec, recall = test_classifier(clf_rf, features, labels)
+
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
 ### folder for details on the evaluation method, especially the test_classifier
@@ -150,7 +165,17 @@ clf = GaussianNB()
 #features_train, features_test, labels_train, labels_test = \
  #   train_test_split(features, labels, test_size=0.3, random_state=42)
 
-clf.fit(features_train, labels_train)
-pred = clf.predict(features_test)
+clf_tree.fit(features, labels)
+
+#After testing my classifier, I found that the decision tree had the most effective accuracy
+#in determining POI's for the case.
+
+#Reminder: Remember to include parameter optimization in order to
+#improve accuracy
+from sklearn import cross_validation
+features_train, features_test, labels_train, labels_test =\
+cross_validation.train_test_split(features, labels, test_size=0.1)
+
+pred = clf_tree.predict(features_test)
 print "Accuracy Score: ", accuracy_score(pred, labels_test)
-dump_classifier_and_data(clf, my_dataset, features_list)
+dump_classifier_and_data(clf_tree, my_dataset, features_list)
